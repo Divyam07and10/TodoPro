@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Refresh Token Rotation Test</title>
+</head>
+<body>
+  <h1>Token Rotation Test</h1>
+
+  <button onclick="getProfile()">Get Profile</button>
+  <button onclick="refreshAccessToken()">Refresh Access Token</button>
+  <button onclick="logout()">Logout</button>
+
+  <pre id="output"></pre>
+
+  <script>
+    const urlAccessToken = new URLSearchParams(window.location.search).get("access_token");
+    if (urlAccessToken) {
+      localStorage.setItem("access_token", urlAccessToken);
+    }
+
+    let accessToken = localStorage.getItem("access_token");
+
+    function log(message) {
+      const output = document.getElementById('output');
+      output.textContent += `${message}\n`;
+    }
+
+    async function getProfile() {
+      const res = await fetch('http://localhost:8000/user/me', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const data = await res.json();
+      log(`GET /user/me [${res.status}]: ${JSON.stringify(data)}`);
+    }
+
+    async function refreshAccessToken() {
+      const res = await fetch('http://localhost:8000/auth/refresh', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        accessToken = data.access_token;
+        localStorage.setItem("access_token", accessToken);
+        log(`POST /auth/refresh [${res.status}]: New access token received`);
+      } else {
+        log(`POST /auth/refresh [${res.status}]: ${JSON.stringify(data)}`);
+      }
+    }
+
+    async function logout() {
+      const res = await fetch('http://localhost:8000/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const data = await res.json();
+      log(`POST /auth/logout [${res.status}]: ${JSON.stringify(data)}`);
+
+      accessToken = null;
+      localStorage.removeItem("access_token");
+    }
+  </script>
+</body>
+</html>

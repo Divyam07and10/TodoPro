@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>OAuth Integration</title>
+</head>
+<body>
+  <h1>Login with Google</h1>
+  <p id="status"></p>
+  <button onclick="login()">Login</button>
+  <button onclick="getProfile()">Get Profile</button>
+  <button onclick="logout()">Logout</button>
+
+  <pre id="output"></pre>
+
+  <script>
+    function login() {
+      window.location.href = 'http://localhost:8000/auth/google';
+    }
+
+    window.onload = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('access_token')) {
+        const token = params.get('access_token');
+        localStorage.setItem('access_token', token);
+        document.getElementById('output').textContent = 'Logged in. Access token stored.';
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    };
+
+    function getProfile() {
+      const token = localStorage.getItem('access_token');
+
+      const auth_token = "supersecureapikey_123456789";
+
+      if (!token) return alert('Login first');
+
+      fetch('http://localhost:8000/user/me', {
+        method: 'GET',
+        headers: {
+          Authorization: 'Bearer ' + token,
+          "x-api-key": auth_token
+        }
+      })
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+        })
+        .catch(err => console.error(err));
+    }
+
+    function logout() {
+        const accessToken = localStorage.getItem('access_token');
+        const auth_token = "supersecureapikey_123456789";
+
+      fetch('http://localhost:8000/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            "x-api-key": auth_token
+        },
+      })
+      .then(async (res) => {
+        const data = await res.json();
+        console.log('Logout response: ', data);
+
+        localStorage.removeItem('access_token');
+        document.getElementById('status').innerText = 'Logged Out';
+      })
+      .catch(console.error);
+    }
+  </script>
+</body>
+</html>
