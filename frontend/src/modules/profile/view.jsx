@@ -44,17 +44,17 @@ export default function ProfileView({ user, todos, stats, loading, joinDate }) {
                   )}
                 </Avatar>
 
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <h1 className="text-3xl font-bold text-gray-900">{user.name}</h1>
+                    <div className="min-w-0 flex-1">
+                      <h1 className="text-3xl font-bold text-gray-900 truncate">{user.name}</h1>
                       <p className="text-gray-600 flex items-center mt-1">
-                        <Mail className="h-4 w-4 mr-2" />
-                        {user.email}
+                        <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <span className="truncate">{user.email}</span>
                       </p>
                     </div>
 
-                    <div className="flex space-x-3 mt-4 sm:mt-0">
+                    <div className="flex space-x-3 mt-4 sm:mt-0 flex-shrink-0">
                       <Link href="/profile/edit">
                         <Button>
                           <Edit className="h-4 w-4 mr-2" />
@@ -64,7 +64,11 @@ export default function ProfileView({ user, todos, stats, loading, joinDate }) {
                     </div>
                   </div>
 
-                  {user.bio && <p className="text-gray-700 mt-4">{user.bio}</p>}
+                  {user.bio && (
+                    <div className="mt-4">
+                      <p className="text-gray-700 break-words whitespace-pre-wrap overflow-wrap-anywhere">{user.bio}</p>
+                    </div>
+                  )}
 
                   <div className="flex items-center space-x-4 mt-4">
                     <Badge variant="secondary" className="flex items-center">
