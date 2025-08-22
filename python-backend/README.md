@@ -125,14 +125,14 @@ Ensure Python is on PATH: `python --version` or `py --version` (Windows).
 
 ## ⚙️ Setup & Run
 
-2. **Clone the Repository**:
+1) **Clone or open the repository**
 
-```bash
-git clone https://github.com/hodev09/todo-app.git
-cd python-backend
-```
+   ```bash
+   git clone https://github.com/hodev09/todo-app.git
+   cd python-backend
+   ```
 
-2. **Create and activate a virtual environment**
+2) **Create and activate a virtual environment**
 
    macOS/Linux (bash/zsh)
 
@@ -156,42 +156,42 @@ cd python-backend
    venv\Scripts\activate.bat
    ```
 
-3. **Install dependencies**
+3) **Install dependencies**
 
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Configure Environment Variables**:
+4) **Configure environment variables**
 
-Create a `.env` file:
+   Create a `.env` file:-
 
-```bash
-# .env
-ENVIRONMENT=development
-DATABASE_URL=postgresql+asyncpg://DATABASE_USERNAME:DATABASE_PASSWORD@DATABASE_HOSTNAME:DATABASE_PORT/DATABASE_NAME
-DATABASE_SYNC_URL=postgresql://DATABASE_USERNAME:DATABASE_PASSWORD@DATABASE_HOSTNAME:DATABASE_PORT/DATABASE_NAME
-ACCESS_TOKEN_SECRET=your_access_token_secret
-REFRESH_TOKEN_SECRET=your_refresh_token_secret
-API_KEY=your_api_key                                        # Api key for accessing protected endpoints
-ALGORITHM=HS256                                             # Or RS256 if using asymmetric keys or any other algorithm used for signing the JWTs
-ACCESS_TOKEN_EXPIRE=our_access_token_exipry_time            # e.g., "30m", "1h", "1d"
-REFRESH_TOKEN_EXPIRE=our_refresh_token_exipry_time          # e.g., "16h", "7d", "30d"
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
-# Max file size in bytes (default 2MB)
-MAX_FILE_SIZE=2097152 # 2 * 1024 * 1024
-# Upload directory relative to project root; served under /static
-UPLOAD_DIR=static/avatars
-# Comma-separated allowed extensions
-ALLOWED_EXTENSIONS=jpg,jpeg,png,gif,svg
-```
+   ```bash
+   # .env
+   ENVIRONMENT=development
+   DATABASE_URL=postgresql+asyncpg://DATABASE_USERNAME:DATABASE_PASSWORD@DATABASE_HOSTNAME:DATABASE_PORT/DATABASE_NAME
+   DATABASE_SYNC_URL=postgresql://DATABASE_USERNAME:DATABASE_PASSWORD@DATABASE_HOSTNAME:DATABASE_PORT/DATABASE_NAME
+   ACCESS_TOKEN_SECRET=your_access_token_secret
+   REFRESH_TOKEN_SECRET=your_refresh_token_secret
+   API_KEY=your_api_key                                        # Api key for accessing protected endpoints
+   ALGORITHM=HS256                                             # Or RS256 if using asymmetric keys or any other algorithm used for signing the JWTs
+   ACCESS_TOKEN_EXPIRE=our_access_token_expiry_time            # e.g., "30m", "1h", "1d"
+   REFRESH_TOKEN_EXPIRE=our_refresh_token_expiry_time          # e.g., "16h", "7d", "30d"
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
+   GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
+   # Max file size in bytes (default 2MB)
+   MAX_FILE_SIZE=2097152 # 2 * 1024 * 1024
+   # Upload directory relative to project root; served under /static
+   UPLOAD_DIR=static/avatars
+   # Comma-separated allowed extensions
+   ALLOWED_EXTENSIONS=jpg,jpeg,png,gif,svg
+   ```
 
-Notes:
-* `DATABASE_URL` is async (asyncpg) for the app; `DATABASE_SYNC_URL` is sync for Alembic.
+   Notes:
+   * `DATABASE_URL` is async (asyncpg) for the app; `DATABASE_SYNC_URL` is sync for Alembic.
 
-5. **Initialize database (Alembic)**
+5) **Initialize database (Alembic)**
 
    ```bash
    # Apply latest migrations
@@ -201,14 +201,14 @@ Notes:
    alembic revision --autogenerate -m "describe changes"
    ```
 
-6. **Run server (Uvicorn)**
+6) **Run the server (Uvicorn)**
 
    ```bash
    uvicorn app.main:app --reload
    ```
 
-API → `http://localhost:8000`
-Static avatars → `http://localhost:8000/static/avatars/...`
+   API → `http://localhost:8000`
+   Static avatars → `http://localhost:8000/static/avatars/...`
 
 ---
 
