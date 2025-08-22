@@ -343,37 +343,48 @@ python-backend/                                   # Backend repository root
 
 ---
 
-## 🔐 APIs
+## 🔐 Authentication APIs
 
-### Authentication
+### Google OAuth2
+
 | Method | Endpoint                          | Description |
 | ------ | --------------------------------- | ----------- |
 | GET    | `/auth/google`                    | Redirects to Google login |
 | GET    | `/auth/google/callback?code=...`  | Handles OAuth2 callback |
-| POST   | `/auth/refresh`                   | Returns a fresh access token (requires refresh cookie) |
-| POST   | `/auth/logout`                    | Logs out user and clears refresh cookie |
 
 Behavior on successful callback:
-- Sets `refresh_token` as HttpOnly cookie (SameSite=Lax; use Secure in production).
-- Redirects to frontend with `access_token` in the URL query.
 
-Example refresh response:
+* Sets `refresh_token` as HttpOnly cookie (SameSite=Lax; Secure in prod)
+* Redirects to frontend with `access_token` in the URL query (e.g., `?access_token=...`)
+
+### Refresh Access Token
+
+* `POST /auth/refresh` → Requires valid refresh cookie. Returns a fresh access token.
+
+Example response
+
 ```json
 { "access_token": "<jwt>", "token_type": "bearer" }
 ```
 
-Example logout response:
+### Logout
+
+* `POST /auth/logout` → Requires `Authorization: Bearer <token>`. Clears refresh cookie.
+
+Example response
+
 ```json
 { "message": "Logged out successfully" }
 ```
 
-### User Profile
-| Method | Endpoint   | Description                 |
-| ------ | ---------- | --------------------------- |
-| GET    | `/user/me` | Get logged-in user profile  |
-| PATCH  | `/user/me` | Update name, bio, or avatar (requires `Authorization` and `X-API-Key`) |
+---
 
-**Get Profile Response** (avatar is an absolute URL):
+## 👤 User Profile APIs
+
+* **GET /user/me** → Returns profile with absolute avatar URL.
+
+Example response
+
 ```json
 {
   "id": "uuid",
@@ -385,16 +396,49 @@ Example logout response:
 }
 ```
 
-### Todos
-| Method | Endpoint     | Description         |
-| ------ | ------------ | ------------------- |
-| POST   | `/todos`     | Create a new todo   |
-| GET    | `/todos`     | Get all user todos (supports filters) |
-| GET    | `/todos/:id` | Get a single todo   |
-| PATCH  | `/todos/:id` | Update a todo       |
-| DELETE | `/todos/:id` | Delete a todo       |
+* **PATCH /user/me** → Requires `Authorization` and `X-API-Key`.
 
-**Create Todo Request**:
+FormData fields
+
+* `name` (optional string)
+* `bio` (optional string)
+* `avatar` (optional image file). To remove avatar, send empty filename or omit and include a removal flag as implemented by client.
+
+Example response
+
+```json
+{
+  "id": "uuid",
+  "email": "user@example.com",
+  "name": "Updated Name",
+  "avatar": "http://localhost:8000/static/avatars/new-avatar.jpg",
+  "bio": "Updated bio"
+}
+```
+
+Avatar rules:
+
+* Validate extension against `ALLOWED_EXTENSIONS`.
+* Validate size ≤ `MAX_FILE_SIZE`.
+* Stored in `UPLOAD_DIR`, old avatars replaced.
+
+Troubleshooting avatars
+
+* Files are saved under `static/avatars/` and served at `/static/avatars/<filename>`.
+* 404s typically mean the file does not exist on disk or the filename stored in DB is stale. Verify the file exists in `static/avatars/` and that the returned URL matches.
+
+---
+
+## ✅ Todo APIs
+
+### Create Todo
+
+| Method | Endpoint  | Description |
+| ------ | --------- | ----------- |
+| POST   | `/todos`  | Create a new todo |
+
+Request body
+
 ```json
 {
   "title": "Buy groceries",
@@ -405,7 +449,8 @@ Example logout response:
 }
 ```
 
-**Create Todo Response**:
+Example response
+
 ```json
 {
   "id": "uuid",
@@ -418,6 +463,65 @@ Example logout response:
   "createdAt": "2025-07-17T11:00:00.000Z",
   "updatedAt": "2025-07-17T11:00:00.000Z"
 }
+```
+
+### Get All Todos
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| GET    | `/todos` | Get all user todos (supports filters) |
+
+Query filters: `search`, `priority`, `status`, `orderBy`, `category`.
+
+Example response
+
+```json
+[
+  {
+    "id": "uuid",
+    "title": "Buy groceries",
+    "description": "Milk, Eggs, Bread",
+    "priority": "high",
+    "category": "personal",
+    "dueDate": "2025-07-30T10:00:00.000Z",
+    "completed": false,
+    "createdAt": "2025-07-17T11:00:00.000Z",
+    "updatedAt": "2025-07-17T11:00:00.000Z"
+  }
+]
+```
+
+### Get One Todo
+
+| Method | Endpoint            | Description |
+| ------ | ------------------- | ----------- |
+| GET    | `/todos/{id}`       | Get a single todo by id |
+
+### Update Todo
+
+| Method | Endpoint            | Description |
+| ------ | ------------------- | ----------- |
+| PATCH  | `/todos/{id}`       | Update a todo |
+
+Request body (partial)
+
+```json
+{
+  "title": "Updated title",
+  "completed": true
+}
+```
+
+### Delete Todo
+
+| Method | Endpoint            | Description |
+| ------ | ------------------- | ----------- |
+| DELETE | `/todos/{id}`       | Delete a todo |
+
+Example response
+
+```json
+{ "message": "Todo deleted successfully" }
 ```
 
 ---
