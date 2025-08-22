@@ -1,0 +1,14 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+
+# Environment file
+.env
+
+# Static uploads (keep directory, ignore contents)
+static/avatars/*
+!static/avatars/.gitkeep
