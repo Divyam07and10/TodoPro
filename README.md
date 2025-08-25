@@ -369,7 +369,7 @@ Example response
 
 ### Logout
 
-* `POST /auth/logout` → Requires `Authorization: Bearer <token>`. Clears refresh cookie.
+* `POST /auth/logout` → Requires `Authorization: Bearer <token>` and `X-API-Key`. Clears refresh cookie.
 
 Example response
 
@@ -381,7 +381,7 @@ Example response
 
 ## 👤 User Profile APIs
 
-* **GET /user/me** → Returns profile with absolute avatar URL.
+* **GET /user/me** → Requires `Authorization` and `X-API-Key`. Returns profile with absolute avatar URL.
 
 Example response
 
@@ -431,6 +431,8 @@ Troubleshooting avatars
 
 ## ✅ Todo APIs
 
+All Todo endpoints require `Authorization: Bearer <token>` and `X-API-Key`.
+
 ### Create Todo
 
 | Method | Endpoint  | Description |
@@ -445,7 +447,7 @@ Request body
   "description": "Milk, Eggs, Bread",
   "priority": "high",
   "category": "personal",
-  "dueDate": "2025-07-30T10:00:00.000Z"
+  "dueDate": "2025-07-30"
 }
 ```
 
@@ -458,7 +460,7 @@ Example response
   "description": "Milk, Eggs, Bread",
   "priority": "high",
   "category": "personal",
-  "dueDate": "2025-07-30T10:00:00.000Z",
+  "dueDate": "2025-07-30",
   "completed": false,
   "createdAt": "2025-07-17T11:00:00.000Z",
   "updatedAt": "2025-07-17T11:00:00.000Z"
@@ -483,7 +485,7 @@ Example response
     "description": "Milk, Eggs, Bread",
     "priority": "high",
     "category": "personal",
-    "dueDate": "2025-07-30T10:00:00.000Z",
+    "dueDate": "2025-07-30",
     "completed": false,
     "createdAt": "2025-07-17T11:00:00.000Z",
     "updatedAt": "2025-07-17T11:00:00.000Z"
@@ -534,7 +536,7 @@ Example response
 - **Backend (FastAPI)**:
   - Access token in `Authorization: Bearer <token>` header.
   - Refresh token set as HttpOnly cookie (SameSite=Lax; use `Secure` in production).
-  - API key header (`X-API-Key`) required for sensitive routes like `PATCH /user/me`.
+  - API key header (`X-API-Key`) required for all User routes (`GET /user/me`, `PATCH /user/me`), all Todo routes (`/todos` CRUD), and `POST /auth/logout`.
   - File validation: allowed extensions and max size enforced; avatars served from `/static/avatars`.
   - Robust environment validation via Pydantic settings.
 
@@ -549,3 +551,5 @@ Example response
 
 ## 📄 License
 This project is licensed under the **MIT License** © 2025.
+
+---
