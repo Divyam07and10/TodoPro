@@ -28,39 +28,59 @@ class FileService:
         
         # Validate file extension
         if not validate_file_extension(file.filename, self.allowed_extensions):
+            # Normalize allowed list for a clean message
+            allowed_list = ", ".join([ext.strip() for ext in self.allowed_extensions.split(",")])
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid file type. Allowed: {self.allowed_extensions}"
+                detail=f"Invalid file type. Allowed formats: {allowed_list}."
             )
         
-        # Validate file size (seek to end, read size, then reset)
-        try:
-            current_pos = file.file.tell()
-        except Exception:
-            current_pos = 0
-        try:
-            file.file.seek(0, os.SEEK_END)
-            size = file.file.tell()
-            file.file.seek(current_pos)
-        except Exception:
-            size = 0
-        if size and not validate_file_size(size, self.max_file_size):
-            # 413: Payload Too Large
-            raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"File too large. Max size: {self.max_file_size // 1024 // 1024}MB"
-            )
+        # We will enforce size during streaming copy to avoid unreliable seek/tell on temp files
         
         # Generate unique filename
         file_extension = Path(file.filename).suffix
         filename = f"avatar_{user_id}_{self._generate_unique_suffix()}{file_extension}"
         file_path = self.upload_dir / filename
         
-        # Save file
+        # Ensure we start from beginning before saving to avoid partial writes
+        try:
+            file.file.seek(0)
+        except Exception:
+            pass
+
+        # Save file with streaming size enforcement
+        bytes_written = 0
+        chunk_size = 1024 * 1024  # 1MB
         try:
             with open(file_path, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
+                while True:
+                    chunk = file.file.read(chunk_size)
+                    if not chunk:
+                        break
+                    bytes_written += len(chunk)
+                    if bytes_written > self.max_file_size:
+                        # Abort and remove partial file
+                        try:
+                            buffer.close()
+                        finally:
+                            if file_path.exists():
+                                file_path.unlink(missing_ok=True)
+                        max_mb = max(1, self.max_file_size // (1024 * 1024))
+                        raise HTTPException(
+                            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                            detail=f"Image must be {max_mb}MB or below."
+                        )
+                    buffer.write(chunk)
+        except HTTPException:
+            # Re-raise our intentional size error
+            raise
         except Exception as e:
+            # Cleanup on failure
+            if file_path.exists():
+                try:
+                    file_path.unlink(missing_ok=True)
+                except Exception:
+                    pass
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to save file: {str(e)}"
