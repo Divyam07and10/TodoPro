@@ -1,0 +1,425 @@
+{
+  "info": {
+    "_postman_id": "f6e0c9a1-3b0d-4e8a-9b9e-000000000001",
+    "name": "TodoPro Python Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for FastAPI backend: Auth, User, and Todo APIs. Uses variables for base URL, access token, and API key."
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Auth • Google Redirect",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/google",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "google"
+              ]
+            },
+            "description": "Redirects to Google OAuth. This is a browser redirect and not typically used directly via Postman."
+          }
+        },
+        {
+          "name": "Auth • Google Callback (manual test)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/google/callback?code=your_code_here",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "google",
+                "callback"
+              ],
+              "query": [
+                {
+                  "key": "code",
+                  "value": "your_code_here"
+                }
+              ]
+            },
+            "description": "Handles Google OAuth callback. On success sets refresh_token cookie and redirects with access_token in URL. Typically tested via browser flow."
+          }
+        },
+        {
+          "name": "Auth • Refresh Access Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Store new access_token to collection variable",
+                  "if (pm.response.code === 200) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    if (data.access_token) {",
+                  "      pm.collectionVariables.set('access_token', data.access_token);",
+                  "    }",
+                  "  } catch (e) {}",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "refresh_token={{refresh_token}}",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Requires refresh_token cookie present in Postman cookie jar for {{base_url}}. Returns new access_token."
+          }
+        },
+        {
+          "name": "Auth • Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Clears refresh cookie. Requires Authorization header."
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "User • Get Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "User • Update Me (form-data + optional avatar)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Updated Name",
+                  "type": "text",
+                  "disabled": false
+                },
+                {
+                  "key": "bio",
+                  "value": "Updated bio",
+                  "type": "text",
+                  "disabled": false
+                },
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "src": "{{avatar_file}}",
+                  "disabled": true,
+                  "contentType": null
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/user/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "me"
+              ]
+            },
+            "description": "To remove avatar, send avatar key with empty value or leave file disabled and handle removal flag as per client convention."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Todos",
+      "item": [
+        {
+          "name": "Todos • Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Buy groceries\",\n  \"description\": \"Milk, Eggs, Bread\",\n  \"priority\": \"high\",\n  \"category\": \"personal\",\n  \"dueDate\": \"2025-07-30\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/todos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "todos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Todos • Get All",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/todos?search=&priority=&status=&orderBy=&category=",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "todos"
+              ],
+              "query": [
+                { "key": "search", "value": "" },
+                { "key": "priority", "value": "" },
+                { "key": "status", "value": "" },
+                { "key": "orderBy", "value": "" },
+                { "key": "category", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Todos • Get One",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/todos/{{todo_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "todos",
+                "{{todo_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Todos • Update",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated title\",\n  \"completed\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/todos/{{todo_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "todos",
+                "{{todo_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Todos • Delete",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/todos/{{todo_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "todos",
+                "{{todo_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "",
+      "type": "string",
+      "description": "Set to your API key from .env (settings.API_KEY). Required for PATCH /user/me"
+    },
+    {
+      "key": "todo_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "avatar_file",
+      "value": "/absolute/path/to/avatar.jpg",
+      "type": "string",
+      "description": "Local path to an image file for avatar upload."
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string",
+      "description": "Optional: set this to your refresh JWT to send via Cookie header (enable the disabled Cookie header in the Refresh request). Prefer using Postman's cookie jar instead."
+    }
+  ]
+}
