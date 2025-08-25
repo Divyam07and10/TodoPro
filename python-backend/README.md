@@ -238,7 +238,7 @@ Example response
 
 ### Logout
 
-* `POST /auth/logout` → Requires `Authorization: Bearer <token>`. Clears refresh cookie.
+* `POST /auth/logout` → Requires `Authorization: Bearer <token>` and `X-API-Key`. Clears refresh cookie.
 
 Example response
 
@@ -250,7 +250,7 @@ Example response
 
 ## 👤 User Profile APIs
 
-* **GET /user/me** → Returns profile with absolute avatar URL.
+* **GET /user/me** → Requires `Authorization` and `X-API-Key`. Returns profile with absolute avatar URL.
 
 Example response
 
@@ -300,6 +300,8 @@ Troubleshooting avatars
 
 ## ✅ Todo APIs
 
+All Todo endpoints require `Authorization: Bearer <token>` and `X-API-Key`.
+
 ### Create Todo
 
 | Method | Endpoint  | Description |
@@ -314,7 +316,7 @@ Request body
   "description": "Milk, Eggs, Bread",
   "priority": "high",
   "category": "personal",
-  "dueDate": "2025-07-30T10:00:00.000Z"
+  "dueDate": "2025-07-30"
 }
 ```
 
@@ -327,7 +329,7 @@ Example response
   "description": "Milk, Eggs, Bread",
   "priority": "high",
   "category": "personal",
-  "dueDate": "2025-07-30T10:00:00.000Z",
+  "dueDate": "2025-07-30",
   "completed": false,
   "createdAt": "2025-07-17T11:00:00.000Z",
   "updatedAt": "2025-07-17T11:00:00.000Z"
@@ -352,7 +354,7 @@ Example response
     "description": "Milk, Eggs, Bread",
     "priority": "high",
     "category": "personal",
-    "dueDate": "2025-07-30T10:00:00.000Z",
+    "dueDate": "2025-07-30",
     "completed": false,
     "createdAt": "2025-07-17T11:00:00.000Z",
     "updatedAt": "2025-07-17T11:00:00.000Z"
@@ -397,7 +399,7 @@ Example response
 
 * Access token: Bearer token in headers.
 * Refresh token: HttpOnly cookie with SameSite=Lax (use Secure in prod).
-* API key: Required for sensitive routes like PATCH `/user/me`.
+* API key: Required for all User (`GET /user/me`, `PATCH /user/me`), all Todo routes (`/todos`), and `POST /auth/logout`.
 * Input validation: Pydantic + file checks (size, extension).
 
 ---
