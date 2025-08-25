@@ -12,6 +12,8 @@ def validate_username(username: str) -> bool:
     pattern = r'^[a-zA-Z0-9_]{3,30}$'
     return bool(re.match(pattern, username))
 
+ 
+
 def sanitize_string(text: str) -> str:
     """Sanitize user input string."""
     # Remove potentially dangerous characters

@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 from app.utils.helpers import parse_timedelta
 from typing import Optional
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,8 +12,6 @@ from app.db.session import get_db
 from app.db.models.user import User
 from app.api.users.repository import UsersRepository
 
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # OAuth2 scheme for token extraction
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -51,23 +48,9 @@ def verify_token(token: str, token_type: str = "access") -> Optional[dict]:
     except JWTError:
         return None
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against its hash."""
-    return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password: str) -> str:
-    """Hash a password."""
-    return pwd_context.hash(password)
-
 def generate_random_string(length: int = 32) -> str:
     """Generate a random string for IDs."""
     return secrets.token_urlsafe(length)
-
-def is_valid_password(password: str) -> bool:
-    """Validate password strength."""
-    if len(password) < 8:
-        return False
-    return True
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
