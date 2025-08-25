@@ -8,7 +8,7 @@ from app.core.api_key_guard import verify_api_key
 from app.api.todos.service import TodoService
 from app.api.todos.schemas import TodoCreate, TodoUpdate, TodoResponse
 
-router = APIRouter(prefix="/todos", tags=["Todos"])
+router = APIRouter(prefix="/todos", tags=["Todos"], dependencies=[Depends(verify_api_key)])
 
 @router.post("", response_model=TodoResponse, status_code=201)
 async def create_todo(

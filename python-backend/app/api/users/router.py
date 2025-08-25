@@ -8,7 +8,7 @@ from app.core.api_key_guard import verify_api_key
 from app.api.users.service import UserService
 from app.api.users.schemas import UserResponse
 
-router = APIRouter(prefix="/user", tags=["User"])
+router = APIRouter(prefix="/user", tags=["User"], dependencies=[Depends(verify_api_key)])
 
 @router.get("/me", response_model=UserResponse)
 async def get_profile(request: Request, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -24,7 +24,6 @@ async def update_profile(
     avatar: Optional[UploadFile] = File(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _: bool = Depends(verify_api_key)
 ):
     user_service = UserService(db)
     
