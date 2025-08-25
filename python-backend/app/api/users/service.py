@@ -90,6 +90,10 @@ class UserService:
             await self.session.refresh(user)
             
             return self._convert_to_user_response(user, request)
+        except HTTPException as he:
+            # Propagate known client errors (e.g., 400 invalid type, 413 too large)
+            await self.session.rollback()
+            raise he
         except Exception as e:
             await self.session.rollback()
             raise HTTPException(
