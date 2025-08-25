@@ -70,7 +70,8 @@ async def logout(
     request: Request,
     response: Response,
     current_user: User = Depends(get_current_user),
-    auth_service: AuthService = Depends(get_auth_service)
+    auth_service: AuthService = Depends(get_auth_service),
+    _: bool = Depends(verify_api_key)
 ):
     """Logout user."""
     return await auth_service.logout(current_user.id, response)
