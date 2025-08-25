@@ -410,6 +410,6 @@ MIT License © 2025
 
 ## 🙋 Contributions
 
-PRs are welcome. Please follow the documented API contracts to keep parity with the TypeScript backend.
+PRs are welcome. Please follow the documented API contracts to keep parity with the Python (FASTAPI) backend.
 
 ---
