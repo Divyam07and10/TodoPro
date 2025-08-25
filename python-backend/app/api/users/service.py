@@ -24,18 +24,14 @@ class UserService:
             # Fallback: let frontend render placeholder; return null
             return None
         
-        # Check if the avatar path is already a full URL (e.g., from an external service)
+        # If already a full URL (we now store full URLs), return as-is
         if user_avatar.startswith("http://") or user_avatar.startswith("https://"):
             return user_avatar
-        
-        # If it's a local path, ensure the file exists; otherwise, use default placeholder
+
+        # If a relative path slipped in, attempt to construct a URL if file exists
         local_path = f"static/{user_avatar}"
         if not os.path.exists(local_path):
-            # File missing; return null so frontend paints fallback
             return None
-
-        # Otherwise, construct the full URL using FastAPI's url_for for the mounted 'static'.
-        # This avoids double slashes and respects the actual host/port/proxy headers.
         return str(request.url_for("static", path=user_avatar))
 
     def _convert_to_user_response(self, user: User, request: Request) -> UserResponse:
@@ -74,17 +70,20 @@ class UserService:
 
             # Handle explicit avatar removal from form (avatar="")
             if model_data.get("avatar") == "":
-                if user.avatar and not user.avatar.startswith("http"):
+                if user.avatar:
+                    # Delete by filename regardless of stored format (URL or relative)
                     self.files.delete_avatar(user.avatar)
                 user.avatar = None
 
             if avatar:
-                # Delete old avatar if exists
-                if user.avatar and not user.avatar.startswith("http"):
+                # Delete old avatar if exists (works for full URL or relative path)
+                if user.avatar:
                     self.files.delete_avatar(user.avatar)
 
-                # Save new avatar using FileService; store relative path like 'avatars/<filename>'
-                user.avatar = await self.files.save_avatar(avatar, user.id)
+                # Save new avatar (returns relative path like 'avatars/<filename>')
+                saved_rel_path = await self.files.save_avatar(avatar, user.id)
+                # Convert to full static URL and store in DB
+                user.avatar = str(request.url_for("static", path=saved_rel_path))
 
             await self.session.commit()
             await self.session.refresh(user)
