@@ -12,7 +12,6 @@ class User(Base):
     id: str = Column(String(36), primary_key=True, index=True)
     email: str = Column(String(255), unique=True, index=True, nullable=False)
     name: str = Column(String(255), nullable=False)
-    password: str = Column(String(255), nullable=True)  # Optional
     avatar: str = Column(Text, nullable=True)
     bio: str = Column(Text, nullable=True)
     refreshToken: str = Column(Text, nullable=True)  # camelCase field
