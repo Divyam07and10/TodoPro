@@ -8,7 +8,12 @@ from app.core.api_key_guard import verify_api_key
 from app.api.todos.service import TodoService
 from app.api.todos.schemas import TodoCreate, TodoUpdate, TodoResponse
 
-router = APIRouter(prefix="/todos", tags=["Todos"], dependencies=[Depends(verify_api_key)])
+router = APIRouter(
+    prefix="/todos",
+    tags=["Todos"],
+    dependencies=[
+        Depends(verify_api_key)])
+
 
 @router.post("", response_model=TodoResponse, status_code=201)
 async def create_todo(
@@ -19,6 +24,7 @@ async def create_todo(
     """Create a new todo."""
     service = TodoService(db)
     return await service.create(current_user.id, todo_model.model_dump())
+
 
 @router.get("", response_model=List[TodoResponse])
 async def get_all_todos(
@@ -41,6 +47,7 @@ async def get_all_todos(
     }
     return await todo_service.find_all(current_user.id, filters)
 
+
 @router.get("/{todo_id}", response_model=TodoResponse)
 async def get_todo(
     todo_id: str,
@@ -51,8 +58,11 @@ async def get_todo(
     todo_service = TodoService(db)
     todo = await todo_service.find_one(current_user.id, todo_id)
     if not todo:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Todo not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Todo not found")
     return todo
+
 
 @router.patch("/{todo_id}", response_model=TodoResponse)
 async def update_todo(
@@ -65,8 +75,11 @@ async def update_todo(
     todo_service = TodoService(db)
     todo = await todo_service.update(current_user.id, todo_id, todo_model.model_dump(exclude_unset=True))
     if not todo:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Todo not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Todo not found")
     return todo
+
 
 @router.delete("/{todo_id}")
 async def delete_todo(
@@ -77,11 +90,11 @@ async def delete_todo(
     """Delete a todo."""
     service = TodoService(db)
     success = await service.delete(current_user.id, todo_id)
-    
+
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Todo not found"
         )
-    
+
     return {"message": "Todo deleted successfully"}

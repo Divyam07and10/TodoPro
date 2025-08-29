@@ -7,6 +7,7 @@ from app.db.models.user import User
 from app.core.security import create_access_token, create_refresh_token
 from app.api.users.repository import UsersRepository
 
+
 class AuthService:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -16,7 +17,7 @@ class AuthService:
         email = user_info.get("email")
         if not email:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, 
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email not found in Google account"
             )
 
@@ -24,7 +25,7 @@ class AuthService:
 
         if not user:
             user = await self.create_user_from_google(user_info)
-        
+
         access_token, refresh_token = await self.generate_and_set_tokens(user)
 
         return access_token, refresh_token
@@ -34,10 +35,10 @@ class AuthService:
         # Get refresh token from request state (set by refresh token guard)
         refresh_token = getattr(request.state, 'refresh_token', None)
         user_payload = getattr(request.state, 'user_payload', None)
-        
+
         if not refresh_token or not user_payload:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
+                status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Refresh token validation failed"
             )
 
@@ -60,7 +61,6 @@ class AuthService:
         # Generate new access token
         access_token = create_access_token(data={"sub": user.id})
 
-
         return {"access_token": access_token}
 
     async def logout(self, user_id: str, response: Response):
@@ -70,7 +70,8 @@ class AuthService:
         if user:
             user.refreshToken = None
             await self.db.commit()
-        # Delete cookie with same attributes used when setting it (see auth/router.py)
+        # Delete cookie with same attributes used when setting it (see
+        # auth/router.py)
         response.delete_cookie(
             key="refresh_token",
             path="/",
@@ -83,7 +84,6 @@ class AuthService:
         """Fetch a user by email."""
         result = await self.db.execute(select(User).where(User.email == email))
         return result.scalars().first()
-
 
     async def create_user_from_google(self, user_info: dict) -> User:
         """Create a new user from Google OAuth info."""
@@ -105,5 +105,5 @@ class AuthService:
 
         user.refreshToken = refresh_token
         await self.db.commit()
-        
+
         return access_token, refresh_token

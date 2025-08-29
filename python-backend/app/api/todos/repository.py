@@ -4,6 +4,7 @@ from sqlalchemy import select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models.todo import Todo
 
+
 class TodosRepository:
     """Todo repository for database operations."""
 
@@ -27,7 +28,8 @@ class TodosRepository:
             stmt = stmt.where(Todo.category == v)
         if (v := filters.get("search")):
             like = f"%{v}%"
-            stmt = stmt.where(or_(Todo.title.ilike(like), Todo.description.ilike(like)))
+            stmt = stmt.where(or_(Todo.title.ilike(
+                like), Todo.description.ilike(like)))
         result = await self.session.execute(stmt.order_by(Todo.created_at.desc()))
         return result.scalars().all()
 
@@ -37,7 +39,8 @@ class TodosRepository:
         )
         return result.scalar_one_or_none()
 
-    async def update(self, user_id: str, todo_id: str, values: dict) -> Optional[Todo]:
+    async def update(self, user_id: str, todo_id: str,
+                     values: dict) -> Optional[Todo]:
         todo = await self.find_one(user_id, todo_id)
         if not todo:
             return None
