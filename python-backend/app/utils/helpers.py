@@ -27,7 +27,8 @@ def parse_timedelta(time_str: str) -> timedelta:
 
     match = re.match(r"(\d+)([mdy])", time_str.lower())
     if not match:
-        raise ValueError(f"Invalid time string format: '{time_str}'. Use '10m', '7d', '1y'.")
+        raise ValueError(
+            f"Invalid time string format: '{time_str}'. Use '10m', '7d', '1y'.")
 
     value, unit = match.groups()
     value = int(value)

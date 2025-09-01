@@ -43,13 +43,15 @@ class ConflictException(HTTPException):
         super().__init__(status_code=status.HTTP_409_CONFLICT, detail=detail)
 
 
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+async def validation_exception_handler(
+        request: Request,
+        exc: RequestValidationError):
     """Handle Pydantic validation errors with custom messages."""
     errors = []
     for error in exc.errors():
         field = error["loc"][-1] if error["loc"] else "field"
         error_type = error["type"]
-        
+
         # Custom error messages
         if error_type == "missing":
             if field == "title":
@@ -82,12 +84,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             message = "Invalid date format"
         else:
             message = error.get("msg", f"Invalid {field}")
-            
+
         errors.append({
             "field": field,
             "message": message
         })
-    
+
     return JSONResponse(
         status_code=400,
         content={

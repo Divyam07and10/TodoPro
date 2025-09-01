@@ -14,6 +14,7 @@ from app.core.oauth import google_oauth
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
+
 @router.get("/google")
 async def google_auth():
     """Redirect to Google OAuth."""
@@ -22,12 +23,16 @@ async def google_auth():
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="Google OAuth not configured"
         )
-    
+
     auth_url = google_oauth.get_authorization_url()
     return RedirectResponse(auth_url)
 
+
 @router.get("/google/callback")
-async def google_auth_callback(code: str, request: Request, auth_service: AuthService = Depends(get_auth_service)):
+async def google_auth_callback(
+        code: str,
+        request: Request,
+        auth_service: AuthService = Depends(get_auth_service)):
     """Handle Google OAuth callback."""
     try:
         token_data = await google_oauth.exchange_code_for_tokens(code)
@@ -38,10 +43,10 @@ async def google_auth_callback(code: str, request: Request, auth_service: AuthSe
             detail=f"Google authentication failed: {e}"
         )
     access_token, refresh_token = await auth_service.handle_google_login(user_info)
-    
+
     redirect_url = f"http://localhost:3000/dashboard?access_token={access_token}"
     redirect_response = RedirectResponse(url=redirect_url)
-    
+
     refresh_token_expires = parse_timedelta(settings.REFRESH_TOKEN_EXPIRE)
     redirect_response.set_cookie(
         key="refresh_token",
@@ -52,8 +57,9 @@ async def google_auth_callback(code: str, request: Request, auth_service: AuthSe
         max_age=int(refresh_token_expires.total_seconds()),
         secure=settings.ENVIRONMENT == "production"  # Set secure in production
     )
-    
+
     return redirect_response
+
 
 @router.post("/refresh")
 async def refresh_access_token(
@@ -64,6 +70,7 @@ async def refresh_access_token(
 ):
     """Refresh access token."""
     return await auth_service.refresh_access_token(request, response)
+
 
 @router.post("/logout")
 async def logout(

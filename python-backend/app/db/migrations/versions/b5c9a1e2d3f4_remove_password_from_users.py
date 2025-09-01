@@ -28,4 +28,9 @@ def upgrade() -> None:
 def downgrade() -> None:
     # Recreate the password column as nullable String(255)
     with op.batch_alter_table('users') as batch_op:
-        batch_op.add_column(sa.Column('password', sa.String(length=255), nullable=True))
+        batch_op.add_column(
+            sa.Column(
+                'password',
+                sa.String(
+                    length=255),
+                nullable=True))
